@@ -1,12 +1,12 @@
 /*
 (***********************************************************************)
 (*                                                                     *)
-(* The PIDDLE project                                                  *)
+(* The KPID project                                                    *)
 (*                                                                     *)
 (* Copyright (c) 2020-2021, Davide Stocco and Mattia Piazza.           *)
 (*                                                                     *)
-(* The PIDDLE project and its components are supplied under the terms  *)
-(* of the open source BSD 3-Clause License. The contents of the PIDDLE *)
+(* The KPID project and its components are supplied under the terms    *)
+(* of the open source BSD 3-Clause License. The contents of the KPID   *)
 (* project and its components may not be copied or disclosed except in *)
 (* accordance with the terms of the BSD 3-Clause License.              *)
 (*                                                                     *)
@@ -24,71 +24,92 @@
 */
 
 ///
-/// file: piddle_pid.hh
+/// file: kpid_filter.hh
 ///
 
-#ifndef INCLUDE_PIDDLE_PID
-#define INCLUDE_PIDDLE_PID
+#ifndef INCLUDE_KPID_FILTER
+#define INCLUDE_KPID_FILTER
 
 // Piddle headers
-#include "piddle.hh"
-#include "piddle_derivative.hh"
-#include "piddle_integral.hh"
-#include "piddle_proportional.hh"
+#include "kpid_block.hh"
 
-namespace piddle
+namespace kpid
 {
 
   /*\
-   |   ____ ___ ____  
-   |  |  _ \_ _|  _ \ 
-   |  | |_) | || | | |
-   |  |  __/| || |_| |
-   |  |_|  |___|____/ 
-   |                  
+   |    __ _ _ _            
+   |   / _(_) | |_ ___ _ __ 
+   |  | |_| | | __/ _ \ '__|
+   |  |  _| | | ||  __/ |   
+   |  |_| |_|_|\__\___|_|   
+   |                        
   \*/
 
-  //! Class to represent proportional component
-  class PID : public component
+  //! Class to represent first order Butterworth low-pass filter.
+  //! Transformation done using the matched-Z-transform method.
+  class filter : public block
   {
   private:
-    P m_proportional; //! Proportional component
-    I m_integral;     //! Integral component
-    D m_derivative;   //! Derivative component
+    real m_frequency;          //!< Cut-off frequency (Hz)
+    real m_output = real(0.0); //!< Previous output value
 
   public:
-    //! Get PID components gain
+    //! Get cut-off frequency const reference
+    real const &
+    frequency(void) const
+    {
+      return this->m_frequency;
+    }
+
+    //! Get cut-off frequency reference
+    real &
+    frequency(void)
+    {
+      return this->m_frequency;
+    }
+
+    //! Get output value const reference
+    real const &
+    output(void) const
+    {
+      return this->m_output;
+    }
+
+    //! Get output value reference
+    real &
+    output(void)
+    {
+      return this->m_output;
+    }
+
+    //! Setup low-pass filter component
     real
-    gain(
-        real const input, //!< Input source value
-        real const step   //!< Time step value
+    setup(
+        real input,   //!< Input value
+        real dt //!< Time dt
     )
         const override
     {
       if (this->isEnabled())
-        return this->m_proportional.gain(input, step) +
-               this->m_integral.gain(input, step) +
-               this->m_derivative.gain(input, step);
+        return this->m_output += (input - this->m_output) * (1.0 - std::exp(-dt * 2.0 * kpid::PI * this->frequency));
       else
         return real(0.0);
     }
 
-    //! Reset PID components
+    //! Reset filter component
     real
     reset(void)
         override
     {
-      this->m_proportional.reset();
-      this->m_integral.reset();
-      this->m_derivative.reset();
+      this->m_output = real(0.0);
     };
 
-  }; // class proportional
+  }; // class filter
 
-} // namespace piddle
+} // namespace kpid
 
 #endif
 
 ///
-/// eof: piddle_proportional.hh
+/// eof: kpid_filter.hh
 ///

@@ -1,12 +1,12 @@
 /*
 (***********************************************************************)
 (*                                                                     *)
-(* The PIDDLE project                                                  *)
+(* The KPID project                                                    *)
 (*                                                                     *)
 (* Copyright (c) 2020-2021, Davide Stocco and Mattia Piazza.           *)
 (*                                                                     *)
-(* The PIDDLE project and its components are supplied under the terms  *)
-(* of the open source BSD 3-Clause License. The contents of the PIDDLE *)
+(* The KPID project and its components are supplied under the terms    *)
+(* of the open source BSD 3-Clause License. The contents of the KPID   *)
 (* project and its components may not be copied or disclosed except in *)
 (* accordance with the terms of the BSD 3-Clause License.              *)
 (*                                                                     *)
@@ -24,46 +24,61 @@
 */
 
 ///
-/// file: piddle_integral.hh
+/// file: kpid_integral.hh
 ///
 
-#ifndef INCLUDE_PIDDLE_INTEGRAL
-#define INCLUDE_PIDDLE_INTEGRAL
+#ifndef INCLUDE_KPID_INTEGRAL
+#define INCLUDE_KPID_INTEGRAL
 
 // Piddle headers
-#include "piddle.hh"
-#include "piddle_component.hh"
+#include "kpid_block.hh"
 
-namespace piddle
+namespace kpid
 {
 
   /*\
-   |   ____            _            _   _           
-   |  |  _ \  ___ _ __(_)_   ____ _| |_(_)_   _____ 
-   |  | | | |/ _ \ '__| \ \ / / _` | __| \ \ / / _ \
-   |  | |_| |  __/ |  | |\ V / (_| | |_| |\ V /  __/
-   |  |____/ \___|_|  |_| \_/ \__,_|\__|_| \_/ \___|
-   |                                                
+   |   _       _                       _ 
+   |  (_)_ __ | |_ ___  __ _ _ __ __ _| |
+   |  | | '_ \| __/ _ \/ _` | '__/ _` | |
+   |  | | | | | ||  __/ (_| | | | (_| | |
+   |  |_|_| |_|\__\___|\__, |_|  \__,_|_|
+   |                   |___/             
   \*/
 
   //! Class to represent integral component
-  class I : public component
+  class integral : public block
   {
   private:
+    real m_gain;                 //!< Integral gain
     real m_integral = real(0.0); //!< Integral value
-    real m_old = real(0.0);      //!< Previous input value
+    real m_error = real(0.0);    //!< Previous error value
 
   public:
-    //! Get integral component gain
+    //! Get integral gain const reference
+    real const &
+    gain(void)
+        const
+    {
+      return this->m_gain;
+    }
+
+    //! Get integral gain reference
+    real &
+    gain(void)
+    {
+      return this->m_gain;
+    }
+
+    //! Setup integral component
     real
-    gain(
-        real const input, //!< Input source value
-        real const step   //!< Time step value
+    setup(
+        real error, //!< Input error value
+        real dt     //!< Time step
     )
         const override
     {
       if (this->isEnabled())
-        return this->m_coefficient * this->integral(input, step);
+        return this->m_gain * this->integrate(error, dt);
       else
         return real(0.0);
     }
@@ -73,29 +88,29 @@ namespace piddle
     reset(void)
         override
     {
-      this->m_coefficient = real(0.0);
-      this->m_old = real(0.0);
+      this->m_integral = real(0.0);
+      this->m_error = real(0.0);
     };
 
   private:
-    //! Get integral through trapezoidal formula
+    //! Get integral approximation through trapezoidal formula
     real
-    integral(
-        real const input, //!< Input source value
-        real const step   //!< Time step value
+    integrate(
+        real error, //!< Input source value
+        real dt     //!< Time step value
     )
     {
-      this->m_integral += 0.5 * (input + this->m_old) * step;
-      this->m_old = input;
-      return m_integral;
+      this->m_integral += 0.5 * (error + this->m_error) * dt;
+      this->m_error = error;
+      return this->m_integral;
     }
 
-  }; // class derivative
+  }; // class integral
 
-} // namespace piddle
+} // namespace kpid
 
 #endif
 
 ///
-/// eof: piddle_integral.hh
+/// eof: kpid_integral.hh
 ///

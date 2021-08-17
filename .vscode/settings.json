@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "memory": "cpp",
+    "iomanip": "cpp",
+    "cassert": "cpp"
+  }
+}

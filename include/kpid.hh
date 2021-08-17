@@ -1,12 +1,12 @@
 /*
 (***********************************************************************)
 (*                                                                     *)
-(* The PIDDLE project                                                  *)
+(* The KPID project                                                    *)
 (*                                                                     *)
 (* Copyright (c) 2020-2021, Davide Stocco and Mattia Piazza.           *)
 (*                                                                     *)
-(* The PIDDLE project and its components are supplied under the terms  *)
-(* of the open source BSD 3-Clause License. The contents of the PIDDLE *)
+(* The KPID project and its components are supplied under the terms    *)
+(* of the open source BSD 3-Clause License. The contents of the KPID   *)
 (* project and its components may not be copied or disclosed except in *)
 (* accordance with the terms of the BSD 3-Clause License.              *)
 (*                                                                     *)
@@ -24,15 +24,15 @@
 */
 
 ///
-/// file: piddle.hh
+/// file: kpid.hh
 ///
 
-#ifndef INCLUDE_PIDDLE
-#define INCLUDE_PIDDLE
+#ifndef INCLUDE_KPID
+#define INCLUDE_KPID
 
-// Print piddle errors
-#ifndef PIDDLE_ERROR
-#define PIDDLE_ERROR(MSG)                  \
+// Print kpid errors
+#ifndef KPID_ERROR
+#define KPID_ERROR(MSG)                  \
   {                                      \
     std::ostringstream ost;              \
     ost << MSG;                          \
@@ -40,26 +40,21 @@
   }
 #endif
 
-// Check for piddle errors
-#ifndef PIDDLE_ASSERT
-#define PIDDLE_ASSERT(COND, MSG) \
+// Check for kpid errors
+#ifndef KPID_ASSERT
+#define KPID_ASSERT(COND, MSG) \
   if (!(COND))                 \
-  PIDDLE_ERROR(MSG)
+  KPID_ERROR(MSG)
 #endif
 
 // Standard libraries
 #include <algorithm>
-#include <cassert>
-#include <cstddef>
-#include <iomanip>
 #include <iostream>
-#include <iterator>
 #include <limits>
 #include <memory>
-#include <vector>
 
-//! Namespace containing all piddle typedefs, classes and routines
-namespace piddle
+//! Namespace containing all kpid typedefs, classes and routines
+namespace kpid
 {
 
   /*\
@@ -94,10 +89,10 @@ namespace piddle
   static real const PI = real(3.141592653589793238462643383279500);         //!< Pi static constant value
   static real const PIDIV180 = real(0.017453292519943295769236907684886);   //!< Pi/180 static constant value
 
-} // namespace piddle
+} // namespace kpid
 
 #endif
 
 ///
-/// eof: piddle.hh
+/// eof: kpid.hh
 ///

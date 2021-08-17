@@ -1,12 +1,12 @@
 /*
 (***********************************************************************)
 (*                                                                     *)
-(* The PIDDLE project                                                  *)
+(* The KPID project                                                    *)
 (*                                                                     *)
 (* Copyright (c) 2020-2021, Davide Stocco and Mattia Piazza.           *)
 (*                                                                     *)
-(* The PIDDLE project and its components are supplied under the terms  *)
-(* of the open source BSD 3-Clause License. The contents of the PIDDLE *)
+(* The KPID project and its components are supplied under the terms    *)
+(* of the open source BSD 3-Clause License. The contents of the KPID   *)
 (* project and its components may not be copied or disclosed except in *)
 (* accordance with the terms of the BSD 3-Clause License.              *)
 (*                                                                     *)
@@ -24,76 +24,99 @@
 */
 
 ///
-/// file: piddle_derivative.hh
+/// file: kpid_derivative.hh
 ///
 
-#ifndef INCLUDE_PIDDLE_DERIVATIVE
-#define INCLUDE_PIDDLE_DERIVATIVE
+#ifndef INCLUDE_KPID_DERIVATIVE
+#define INCLUDE_KPID_DERIVATIVE
 
 // Piddle headers
-#include "piddle.hh"
-#include "piddle_component.hh"
+#include "kpid_block.hh"
+#include "kpid_filter.hh"
 
-namespace piddle
+namespace kpid
 {
 
   /*\
-   |   ____            _            _   _           
-   |  |  _ \  ___ _ __(_)_   ____ _| |_(_)_   _____ 
-   |  | | | |/ _ \ '__| \ \ / / _` | __| \ \ / / _ \
-   |  | |_| |  __/ |  | |\ V / (_| | |_| |\ V /  __/
-   |  |____/ \___|_|  |_| \_/ \__,_|\__|_| \_/ \___|
+   |       _           _            _   _           
+   |    __| | ___ _ __(_)_   ____ _| |_(_)_   _____ 
+   |   / _` |/ _ \ '__| \ \ / / _` | __| \ \ / / _ \
+   |  | (_| |  __/ |  | |\ V / (_| | |_| |\ V /  __/
+   |   \__,_|\___|_|  |_| \_/ \__,_|\__|_| \_/ \___|
    |                                                
   \*/
 
   //! Class to represent derivative component
-  class D : public component
+  class derivative : public block
   {
   private:
-    real m_old = real(0.0); //!< Previous input value
+    filter m_filter;             //!< Derivative output block low-pass filter
+    real m_gain;                 //!< Derivative gain coefficient
+    real m_errorOld = real(0.0); //!< Previous error value
 
   public:
-    //! Get derivative component gain
+    //! Get derivative gain const reference
+    real const &
+    gain(void) const
+    {
+      return this->m_gain;
+    }
+
+    //! Get derivative gain reference
+    real &
+    gain(void)
+    {
+      return this->m_gain;
+    }
+
+    //! Setup derivative component
     real
-    gain(
-        real const input, //!< Input source value
-        real const step   //!< Time step value
+    setup(
+        real error,   //!< Input error value
+        real dt //!< Time step
     )
         const override
     {
       if (this->isEnabled())
-        return this->m_coefficient * this->derivative(input, step);
+        return this->m_gain * this->differentiate(error, dt);
       else
         return real(0.0);
     }
 
     //! Reset derivative component
-    real
+    void
     reset(void)
         override
     {
       this->m_old = real(0.0);
+      this->m_filter.reset();
     };
 
   private:
-    //! Get input derivative through backward euler formula
+    //! Get error derivative through backward Euler formula
     real
-    derivative(
-        real const input, //!< Input source value
-        real const step   //!< Time step value
+    differentiate(
+        real error,   //!< Input error value
+        real dt //!< Time step
     )
     {
-      real d = (input - m_old) / step;
-      this->m_old = input;
-      return d;
+      // Calculate derivative
+      real diff = (error - this->m_errorOld) / dt;
+
+      // Perform derivative filtering
+      if (this->m_filter.isEnabled())
+        diff = this->m_filter.setup(diff, dt);
+
+      this->m_errorOld = error;
+      return diff;
     }
 
   }; // class derivative
 
-} // namespace piddle
+} // namespace kpid
 
 #endif
 
 ///
-/// eof: piddle_derivative.hh
+/// eof: kpid_derivative.hh
 ///
