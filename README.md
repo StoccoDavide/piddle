@@ -1,2 +1,3 @@
 # PIDDLE
-A C++ PIDdle controller library (under construction)
+
+A C++ PID controller library
